@@ -1,0 +1,40 @@
+---
+resources:
+
+  - name: ruby-hello-world
+    type: git
+    source:
+      branch: master
+      private_key: ((github-private-key))
+      uri: git@github.com:camfowler/ruby-hello-world.git
+
+jobs:
+
+  - name: test-master
+    plan:
+      # Download the resource into a folder of the same name
+      - get: ruby-hello-world
+        # When a change is detected (new commit), then trigger this job.
+        trigger: true
+
+      - task: run-tests
+        config:
+          # It is possible to use windows... but we dont do that.
+          platform: linux
+
+          # Copy the ruby-hello-world folder into the image into a folder of
+          # the same name
+          inputs:
+            - name: ruby-hello-world
+
+          # This is the image we are running commands inside of (and copying
+          # inputs into)
+          image_resource:
+            type: docker-image
+            source: {repository: ruby}
+
+          run:
+            path: ruby
+            args:
+              - hello_world.rb
+            dir: ruby-hello-world
